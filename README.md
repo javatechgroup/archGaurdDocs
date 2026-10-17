@@ -80,7 +80,7 @@ Add `architecture-guard-maven-plugin` to your project's `<build><plugins>` secti
         <plugin>
             <groupId>io.github.javatechgroup</groupId>
             <artifactId>architecture-guard-maven-plugin</artifactId>
-            <version>1.0.0</version>
+            <version>1.0.2</version>
             <executions>
                 <execution>
                     <goals>
