@@ -160,6 +160,9 @@ mvn architecture-guard:baseline
 1. **Only New Debt Fails the Build:** PRs only fail if the developer adds **new** violations.
 2. **Multiset Protection:** If a legacy class has 1 warning, adding a 2nd warning in the same file is recognized as **new** debt and blocked!
 3. **Automatic Ratchet (`-Darchguard.ratchet=true`):** As developers refactor and clean up old code, the baseline snapshot shrinks automatically. **Technical debt can only decrease, never increase.**
+4. **Two-Pass Semantic Matching (Zero-Drift Baseline):** Unlike naive tools whose baselines break whenever lines shift or methods are edited, ArchGuard pairs exact SHA-256 fingerprints (Pass 1) with semantic identity keys (Pass 2):
+   - **Metric Fluctuation Resilience:** Adding lines inside a baselined monster method (`AG020`), adding branches to a complex method (`AG018`), or injecting collaborators (`AG017`) will **never** trigger false "new violations" or false "resolved debt."
+   - **Refactoring Resilience:** Renaming variables, `@RequestBody` parameters (`AG015`), exception catch variables (`e` → `ex` in `AG008`), or moving code lines around preserves existing baseline identity.
 
 ---
 
@@ -252,6 +255,7 @@ ArchGuard is a **static analysis code gate**, not a runtime JVM profiler:
 | **JPA Eager Fetch / N+1 Risk (`AG014`)** | ✅ **Built-in Native** | ❌ None | ⚠️ Custom test code | ❌ None | ❌ None |
 | **Differential Baselining (PR Delta)** | ✅ **Multiset Snapshot** | ✅ New Code Period | ❌ None | ⚠️ XML Filter | ⚠️ Suppressions |
 | **Automatic Debt Ratcheting** | ✅ **Built-in Mode** | ❌ Manual tuning | ❌ None | ❌ None | ❌ None |
+| **Baseline Refactor Resilience** | ✅ **Two-Pass Semantic (Zero-Drift)** | ⚠️ Fragile Git-diff shifts | ❌ No baseline | ❌ Breaks on line shifts | ❌ Breaks on line shifts |
 | **Interactive Offline HTML Dashboard** | ✅ **Included (Zero CDN)**| ❌ Web server only | ❌ None | ⚠️ Basic static | ⚠️ Basic static |
 | **GitHub Security / SARIF 2.1.0** | ✅ **Native Output** | ⚠️ Plugin / Action | ❌ None | ⚠️ Via plugin | ⚠️ Via plugin |
 | **Setup Time** | **< 60 Seconds (Zero-Config)** | Hours / Days | Hours writing tests | 10 Minutes | 10 Minutes |
