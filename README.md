@@ -17,12 +17,13 @@
 10. [Reports & Diagnostics](#10-reports-diagnostics--automated-pr-code-review)
 11. [CI/CD Pipeline Integration](#11-cicd-pipeline-integration)
 12. [Troubleshooting & FAQ](#12-troubleshooting--faq)
+13. [Operational Best Practices & Crash Prevention](#13-operational-best-practices--crash-prevention)
 
 ---
 
 ## 1. Overview
 
-**ArchGuard** (`com.architectureguard:architecture-guard-maven-plugin`) is a static analysis and quality gate tool designed specifically for Java 21+ and Spring Boot applications.
+**ArchGuard** (`io.github.javatechgroup:architecture-guard-maven-plugin`) is a static analysis and quality gate tool designed specifically for Java 21+ and Spring Boot applications.
 
 Unlike traditional linters that only inspect syntax or basic code smells, ArchGuard combines:
 - **High-performance Bytecode Analysis (ASM):** Inspects compiled class files to analyze type hierarchies, method calls, field types, and class-level layer dependencies.
@@ -64,6 +65,9 @@ flowchart TD
 - **Build Tool:** Apache Maven 3.8.0 or higher
 - **Frameworks Supported:** Spring Boot 3.x, Spring Framework 6.x, Standard Java applications
 
+> [!TIP]
+> **Memory Sizing Notice:** For standard microservices, default Maven memory or `-Xmx1g` is plenty. For very large codebases (2,500+ classes), scale up to `-Xmx2g` (or `-Xmx4g` on mega-monoliths) to prevent `OutOfMemoryError`. Always ensure the heap limit does not exceed your CI runner's total container RAM. See [Section 13: Operational Best Practices & Crash Prevention](#13-operational-best-practices--crash-prevention) for the sizing matrix.
+
 ---
 
 ## 3. Quick Start Guide
@@ -80,7 +84,7 @@ Add `architecture-guard-maven-plugin` to your project's `<build><plugins>` secti
         <plugin>
             <groupId>io.github.javatechgroup</groupId>
             <artifactId>architecture-guard-maven-plugin</artifactId>
-            <version>1.0.2</version>
+            <version>1.0.3</version>
             <executions>
                 <execution>
                     <goals>
@@ -1394,9 +1398,9 @@ By default, reports are saved to `target/architecture-guard/`. You can customize
 ```xml
 <!-- In your pom.xml -->
 <plugin>
-    <groupId>com.architectureguard</groupId>
+    <groupId>io.github.javatechgroup</groupId>
     <artifactId>architecture-guard-maven-plugin</artifactId>
-    <version>1.0.0</version>
+    <version>1.0.3</version>
     <configuration>
         <!-- Custom report destination directory -->
         <outputDirectory>${project.build.directory}/custom-architecture-reports</outputDirectory>
@@ -1543,4 +1547,92 @@ To maintain a permanent, bookmarkable URL (e.g., `https://my-org.github.io/order
 **Answer:** In `archguard.yml` / `architecture-guard.json`, add regex patterns to the `"exclusions"` list (e.g., `[".*Generated.*", ".*MapperImpl.*"]`), or use in-code `@SuppressArchitecture("ALL")`.
 
 ---
+
+## 13. Operational Best Practices & Crash Prevention
+
+To guarantee zero operational failures, prevent out-of-memory errors, and ensure seamless CI/CD execution across both tiny microservices and massive enterprise monoliths, adhere to the following operational best practices.
+
+---
+
+### 🚨 Best Practice #1: Right-Size JVM Heap Memory (CRASH & OOM PREVENTION)
+
+> [!IMPORTANT]
+> **Crash Vectors:** 
+> 1. `java.lang.OutOfMemoryError: Java heap space` (Heap too small on large repositories).
+> 2. `Linux OOM Killer (exit code 137)` (Heap configured larger than container RAM quota).
+
+ArchGuard loads compiled class metadata and AST structures into memory to build the dependency graph. Sizing should match your project size and CI runner constraints:
+
+#### Memory Sizing Matrix:
+
+| Project Size | Production Classes | Recommended `MAVEN_OPTS` | Typical ArchGuard Heap Usage |
+| :--- | :--- | :--- | :--- |
+| **Small / Microservice** | < 500 classes | **Default Maven** (or `-Xmx1g`) | ~120 MB – 250 MB |
+| **Medium Service** | 500 – 2,500 classes | **`-Xmx1g` to `-Xmx2g`** | ~350 MB – 800 MB |
+| **Large Project** | 2,500 – 5,000 classes | **`-Xmx2g`** | ~1.0 GB – 1.6 GB |
+| **Mega-Monolith** | 5,000 – 20,000+ classes | **`-Xmx3g` to `-Xmx4g`** | ~2.0 GB – 3.2 GB |
+
+#### CI/CD Container Safety Rule:
+> [!WARNING]
+> If your CI/CD runner or Docker container has only **2 GB or 4 GB total RAM**, setting `-Xmx4g` will cause the Linux kernel to terminate the container via the OOM Killer (`exit code 137`).
+> **Rule of Thumb:** Keep `-Xmx` at or below **75% of your container's total allocated RAM** (e.g. for a 2 GB container, use `-Xmx1536m`; for a 4 GB container, use `-Xmx3g`).
+
+#### Sizing Configuration Examples:
+
+* **For standard microservices & medium projects (Recommended for most teams):**
+  ```bash
+  export MAVEN_OPTS="-Xmx2g -XX:+UseG1GC"
+  ```
+
+* **For massive 5,000+ class enterprise monoliths:**
+  ```bash
+  export MAVEN_OPTS="-Xmx4g -XX:+UseG1GC"
+  ```
+
+* **In `.mvn/jvm.config` (Recommended for repo-level consistency):**
+  ```properties
+  -Xmx2g
+  -XX:+UseG1GC
+  -XX:+TieredCompilation
+  ```
+
+---
+
+### 🚨 Best Practice #2: Always Execute Within the Lifecycle (`mvn clean verify`)
+
+> [!IMPORTANT]
+> **Crash Vector:** Missing bytecode directory or false `0 classes analyzed`
+> ArchGuard inspects compiled production bytecode (`target/classes`) alongside source code (`src/main/java`). Running `mvn architecture-guard:check` standalone on a newly cloned, uncompiled repository will find no classes, logging a warning and safely skipping analysis.
+
+#### The Solution:
+1. **Never run raw `check` on uncompiled code.** Always bind execution to the Maven `verify` lifecycle phase (default behavior):
+   ```bash
+   # Recommended full pipeline command
+   mvn clean verify
+   ```
+2. **If running the plugin goal standalone**, ensure classes are compiled first:
+   ```bash
+   mvn test-compile architecture-guard:check
+   ```
+3. **In Multi-Module Reactor Projects:** Running `mvn verify` from the parent root ensures upstream sibling module JARs and classes are built into `target/classes` and installed in the local reactor before downstream dependent modules are analyzed.
+
+---
+
+### 🛡️ Additional Stability & Operational Hardening Guidelines
+
+#### 3. Baseline Snapshot Permissions & Git Management
+* Always commit `.architecture-guard-baseline.json` into source control so pull requests compare against the frozen master baseline.
+* Ensure CI/CD runner agents have read permissions for the baseline file and write permissions for the output directory (`target/architecture-guard/`).
+* If a baseline file ever becomes corrupted or truncated, ArchGuard will cleanly trap it and produce an explicit `[BASELINE_LOADER]` error rather than silently failing the build.
+
+#### 4. Safe Ratchet Mode in CI (`-Darchguard.ratchet=true`)
+* Enable automatic ratcheting on your **default branch (main/master)** builds to shrink technical debt as developers refactor code.
+* On feature PR branches, leave ratchet disabled (`false`, the default) so PRs only block newly added debt without prematurely mutating the baseline file on unmerged branches.
+
+#### 5. Fault-Tolerant AST Parsing for Java 21+
+* ArchGuard automatically tolerates modern Java constructs including `record` declarations, `sealed` interfaces, and pattern matching.
+* If individual files contain compilation or syntax errors, ArchGuard safely logs a `[SOURCE_PARSER]` finding for that file while continuing to analyze the rest of the repository without terminating the pipeline.
+
+---
 *Maintained by the Architecture Guard Core Team. Built for Java 21 & Spring Boot.*
+
