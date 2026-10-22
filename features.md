@@ -483,7 +483,7 @@ Add the plugin to your project's `<build><plugins>` section. By default, all 30 
 <plugin>
     <groupId>io.github.javatechgroup</groupId>
     <artifactId>architecture-guard-maven-plugin</artifactId>
-    <version>1.0.3</version>
+    <version>1.0.4</version>
     <executions>
         <execution>
             <goals>

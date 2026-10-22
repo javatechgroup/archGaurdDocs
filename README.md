@@ -84,7 +84,7 @@ Add `architecture-guard-maven-plugin` to your project's `<build><plugins>` secti
         <plugin>
             <groupId>io.github.javatechgroup</groupId>
             <artifactId>architecture-guard-maven-plugin</artifactId>
-            <version>1.0.3</version>
+            <version>1.0.4</version>
             <executions>
                 <execution>
                     <goals>
@@ -1409,7 +1409,7 @@ By default, reports are saved to `target/architecture-guard/`. You can customize
 <plugin>
     <groupId>io.github.javatechgroup</groupId>
     <artifactId>architecture-guard-maven-plugin</artifactId>
-    <version>1.0.3</version>
+    <version>1.0.4</version>
     <configuration>
         <!-- Custom report destination directory -->
         <outputDirectory>${project.build.directory}/custom-architecture-reports</outputDirectory>
