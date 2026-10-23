@@ -11,7 +11,7 @@
 4. [Maven Plugin Configuration](#4-maven-plugin-configuration)
 5. [Core Commands & Execution](#5-core-commands--execution)
 6. [Baseline & Technical Debt Ratcheting](#6-baseline--technical-debt-ratcheting)
-7. [Comprehensive Rule Catalog (AG001 – AG030)](#7-comprehensive-rule-catalog-ag001--ag030)
+7. [Comprehensive Rule Catalog (AG001 – AG033)](#7-comprehensive-rule-catalog-ag001--ag033)
 8. [In-Code Rule Suppressions](#8-in-code-rule-suppressions)
 9. [Configuration File Reference (`archguard.yml`)](#9-configuration-file-reference-archguardyml)
 10. [Reports & Diagnostics](#10-reports-diagnostics--automated-pr-code-review)
@@ -224,7 +224,7 @@ Enable `<ratchet>true</ratchet>` or `-Darchguard.ratchet=true`. Whenever a devel
 
 ---
 
-## 7. Comprehensive Rule Catalog (AG001 – AG030)
+## 7. Comprehensive Rule Catalog (AG001 – AG033)
 
 ### [AG001] Controller to Repository Direct Dependency
 - **Severity:** `ERROR`
@@ -930,6 +930,58 @@ public class OrderPersistenceService {
          .connectTimeout(Duration.ofSeconds(5))
          .build();
      ```
+
+### [AG031] Dynamic Query Concatenation Injection Risk
+- **Severity:** `ERROR`
+- **Standard Mapping:** OWASP Top 10 (A03:2021 — Injection), CWE-89
+- **Rationale:** Concatenating dynamic user input or runtime variables directly into SQL or JPQL query strings bypasses query plan caching and exposes systems to critical SQL/JPQL injection attacks.
+- ❌ **Violation:**
+  ```java
+  @Query("SELECT u FROM User u WHERE u.username = '" + input + "'")
+  User findUser(String input);
+
+  em.createQuery("SELECT o FROM Order o WHERE o.id = " + orderId);
+  ```
+- ✅ **Remediation:**
+  ```java
+  @Query("SELECT u FROM User u WHERE u.username = :username")
+  User findUser(@Param("username") String username);
+
+  em.createQuery("SELECT o FROM Order o WHERE o.id = :orderId", Order.class)
+    .setParameter("orderId", orderId);
+  ```
+
+### [AG032] Broken Cryptographic Algorithm
+- **Severity:** `ERROR`
+- **Standard Mapping:** OWASP Top 10 (A02:2021 — Cryptographic Failures), CWE-327
+- **Rationale:** Obsolete hash algorithms (`MD5`, `SHA-1`) suffer from collision and preimage vulnerabilities. Weak ciphers (`DES`, `RC4`) and ECB mode leak plaintext block patterns and can be decrypted in minutes.
+- ❌ **Violation:**
+  ```java
+  MessageDigest md = MessageDigest.getInstance("MD5");
+  Cipher cipher = Cipher.getInstance("AES/ECB/PKCS5Padding");
+  ```
+- ✅ **Remediation:**
+  ```java
+  MessageDigest md = MessageDigest.getInstance("SHA-256");
+  Cipher cipher = Cipher.getInstance("AES/GCM/NoPadding");
+  ```
+
+### [AG033] Insecure CORS Configuration
+- **Severity:** `ERROR`
+- **Standard Mapping:** OWASP Top 10 (A05:2021 — Security Misconfiguration), CWE-942
+- **Rationale:** Allowing wildcard origins (`*`) while enabling credentials (`allowCredentials = true`) allows any arbitrary external website to perform authenticated requests on behalf of logged-in users, leaking confidential data or session tokens.
+- ❌ **Violation:**
+  ```java
+  @CrossOrigin(origins = "*", allowCredentials = "true")
+  @RestController
+  public class AccountController { ... }
+  ```
+- ✅ **Remediation:**
+  ```java
+  @CrossOrigin(origins = "https://app.example.com", allowCredentials = "true")
+  @RestController
+  public class AccountController { ... }
+  ```
 
 ---
 
