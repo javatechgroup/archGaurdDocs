@@ -8,7 +8,7 @@
 1. [Overview](#1-overview)
 2. [Prerequisites & System Requirements](#2-prerequisites--system-requirements)
 3. [Quick Start Guide](#3-quick-start-guide)
-4. [Maven Plugin Configuration](#4-maven-plugin-configuration)
+4. [Build Tool Configuration (Maven & Gradle)](#4-build-tool-configuration-maven--gradle)
 5. [Core Commands & Execution](#5-core-commands--execution)
 6. [Baseline & Technical Debt Ratcheting](#6-baseline--technical-debt-ratcheting)
 7. [Comprehensive Rule Catalog (AG001 – AG033)](#7-comprehensive-rule-catalog-ag001--ag033)
@@ -23,7 +23,7 @@
 
 ## 1. Overview
 
-**ArchGuard** (`io.github.javatechgroup:architecture-guard-maven-plugin`) is a static analysis and quality gate tool designed specifically for Java 21+ and Spring Boot applications.
+**ArchGuard** (available as the Apache Maven plugin `io.github.javatechgroup:architecture-guard-maven-plugin` and Gradle plugin `io.github.javatechgroup.architecture-guard`) is a static analysis and quality gate tool designed specifically for Java 21+ and Spring Boot applications.
 
 Unlike traditional linters that only inspect syntax or basic code smells, ArchGuard combines:
 - **High-performance Bytecode Analysis (ASM):** Inspects compiled class files to analyze type hierarchies, method calls, field types, and class-level layer dependencies.
@@ -62,20 +62,21 @@ flowchart TD
 ## 2. Prerequisites & System Requirements
 
 - **JDK:** Java 21 or higher
-- **Build Tool:** Apache Maven 3.8.0 or higher
+- **Build Tools:** Apache Maven 3.8.0+ or Gradle 8.0+
 - **Frameworks Supported:** Spring Boot 3.x, Spring Framework 6.x, Standard Java applications
 
 > [!TIP]
-> **Memory Sizing Notice:** For standard microservices, default Maven memory or `-Xmx1g` is plenty. For very large codebases (2,500+ classes), scale up to `-Xmx2g` (or `-Xmx4g` on mega-monoliths) to prevent `OutOfMemoryError`. Always ensure the heap limit does not exceed your CI runner's total container RAM. See [Section 12: Operational Best Practices & Crash Prevention](#12-operational-best-practices--crash-prevention) for the sizing matrix.
+> **Memory Sizing Notice:** For standard microservices, default Maven/Gradle memory or `-Xmx1g` is plenty. For very large codebases (2,500+ classes), scale up to `-Xmx2g` (or `-Xmx4g` on mega-monoliths) to prevent `OutOfMemoryError`. Always ensure the heap limit does not exceed your CI runner's total container RAM. See [Section 12: Operational Best Practices & Crash Prevention](#12-operational-best-practices--crash-prevention) for the sizing matrix.
 
 ---
 
 ## 3. Quick Start Guide
 
-ArchGuard operates on a **Zero-Configuration** philosophy: once declared in your `pom.xml`, it evaluates all 29 rules, auto-detects Spring/JPA layers, and generates HTML & SARIF reports without requiring any external configuration files.
+ArchGuard operates on a **Zero-Configuration** philosophy: once declared in your build (`pom.xml` or `build.gradle`), it evaluates all 33 rules, auto-detects Spring/JPA layers, and generates HTML & SARIF reports without requiring any external configuration files.
 
-### Step 1: Add the Maven Plugin to `pom.xml` (Required)
+### Step 1: Add ArchGuard to Your Build (Required)
 
+#### Option A: Maven (`pom.xml`)
 Add `architecture-guard-maven-plugin` to your project's `<build><plugins>` section:
 
 ```xml
@@ -102,22 +103,59 @@ Add `architecture-guard-maven-plugin` to your project's `<build><plugins>` secti
 </build>
 ```
 
+#### Option B: Gradle Kotlin DSL (`build.gradle.kts`)
+Add the plugin ID and optional configuration block:
+
+```kotlin
+plugins {
+    id("io.github.javatechgroup.architecture-guard") version "1.0.4"
+}
+
+archguard {
+    // Default failure threshold is ERROR. Set to WARNING to fail on all code smells
+    failOnSeverity.set("ERROR")
+}
+```
+
+#### Option C: Gradle Groovy DSL (`build.gradle`)
+```groovy
+plugins {
+    id 'io.github.javatechgroup.architecture-guard' version '1.0.4'
+}
+
+archguard {
+    failOnSeverity = 'ERROR'
+}
+```
+
 ### Step 2: (For Existing Projects) Freeze Legacy Debt
 
 If adopting ArchGuard on an existing project, freeze pre-existing violations into a baseline so legacy code never blocks your build:
 
+**Maven:**
 ```bash
 mvn architecture-guard:baseline
+```
+
+**Gradle:**
+```bash
+./gradlew archGuardBaseline
 ```
 *(Creates `.architecture-guard-baseline.json`. Only newly introduced violations in upcoming pull requests will fail the build).*
 
 ### Step 3: Run Analysis & Enforce Quality Gate
 
+**Maven:**
 ```bash
 mvn clean verify
 ```
 
-ArchGuard will compile your classes, evaluate all 29 architecture and quality rules, generate offline interactive HTML, JSON, and standard SARIF 2.1.0 reports in `target/architecture-guard/`, and fail the build if violations at or above the threshold are detected.
+**Gradle:**
+```bash
+./gradlew check
+```
+
+ArchGuard will compile your classes, evaluate all 33 architecture and quality rules, generate offline interactive HTML, JSON, and standard SARIF 2.1.0 reports in `target/architecture-guard/` (Maven) or `build/reports/architecture-guard/` (Gradle), and fail the build if violations at or above the threshold are detected.
 
 ---
 
@@ -125,16 +163,24 @@ ArchGuard will compile your classes, evaluate all 29 architecture and quality ru
 
 If your project requires non-standard layer package patterns (e.g., Hexagonal ports & adapters), customized rule severities, or package boundary policies, generate a starter configuration file using:
 
+**Maven:**
 ```bash
 mvn architecture-guard:init
+```
+
+**Gradle:**
+```bash
+./gradlew archGuardInit
 ```
 *(Auto-detects base packages and writes a commented `archguard.yml` in your project root).*
 
 ---
 
-## 4. Maven Plugin Configuration
+## 4. Build Tool Configuration (Maven & Gradle)
 
-### Full `<configuration>` Options
+### 4.1 Maven Plugin Configuration
+
+#### Full `<configuration>` Options
 
 | Parameter | Type | Default | CLI Property | Description |
 | :--- | :--- | :--- | :--- | :--- |
@@ -147,54 +193,147 @@ mvn architecture-guard:init
 | `outputDirectory` | `File` | `${project.build.directory}/architecture-guard` | `-Darchguard.outputDirectory` | Target directory for generated HTML, JSON, and SARIF reports. |
 | `skip` | `boolean` | `false` | `-Darchguard.skip` | Skips ArchGuard analysis execution. |
 
+### 4.2 Gradle Plugin Configuration
+
+The ArchGuard Gradle plugin (`io.github.javatechgroup.architecture-guard`) registers the `archguard` configuration extension and automatically wires verification into Gradle's standard `check` task lifecycle.
+
+#### Full `archguard { ... }` DSL Options
+
+```kotlin
+// build.gradle.kts (Kotlin DSL)
+archguard {
+    failOnSeverity.set("ERROR")             // ERROR, WARNING, INFO, NONE
+    failOnNewViolationsOnly.set(true)       // Only fail on new violations if baseline exists
+    ratchet.set(false)                      // Auto-shrink baseline when debt is fixed
+    configFile.set(file("archguard.yml"))   // Optional custom configuration path
+    baselineFile.set(file(".architecture-guard-baseline.json"))
+    outputDirectory.set(layout.buildDirectory.dir("reports/architecture-guard"))
+    skip.set(false)
+}
+```
+
+```groovy
+// build.gradle (Groovy DSL)
+archguard {
+    failOnSeverity = 'ERROR'
+    failOnNewViolationsOnly = true
+    ratchet = false
+    configFile = file('archguard.yml')
+    baselineFile = file('.architecture-guard-baseline.json')
+    outputDirectory = layout.buildDirectory.dir('reports/architecture-guard')
+    skip = false
+}
+```
+
+| Property | Type | Default | CLI / System Property | Description |
+| :--- | :--- | :--- | :--- | :--- |
+| `failOnSeverity` | `Property<String>` | `ERROR` | `-Darchguard.failOnSeverity` | Minimum severity triggering build failure (`ERROR`, `WARNING`, `INFO`, `NONE`). |
+| `threads` | `Property<Integer>` | (auto-detect) | `-Darchguard.threads` | Worker thread count for parallel analysis (0 or omitted = CPU cores). |
+| `failOnNewViolationsOnly` | `Property<Boolean>` | `true` | `-Darchguard.failOnNewViolationsOnly` | When a baseline file exists, only fail the build on new violations. |
+| `ratchet` | `Property<Boolean>` | `false` | `--ratchet` or `-Darchguard.ratchet` | Automatically update baseline file when legacy debt is resolved. |
+| `baselineFile` | `RegularFileProperty` | `<rootDir>/.architecture-guard-baseline.json` | `-Darchguard.baselineFile` | Custom baseline snapshot file location. |
+| `configFile` | `RegularFileProperty` | (auto-discovered) | `-Darchguard.configFile` | Path to custom `archguard.yml` or `architecture-guard.json`. |
+| `outputDirectory` | `DirectoryProperty` | `<buildDir>/reports/architecture-guard` | `-Darchguard.outputDirectory` | Target directory for generated HTML, JSON, and SARIF reports. |
+| `skip` | `Property<Boolean>` | `false` | `-Darchguard.skip` | Skips ArchGuard analysis execution. |
+
+#### Registered Gradle Tasks
+
+| Task Name | Task Type | Description |
+| :--- | :--- | :--- |
+| `archguard` | `ArchitectureGuardCheckTask` | Analyzes compiled classes & source files. Automatically executes during `./gradlew check`. |
+| `archGuardBaseline` | `ArchitectureGuardBaselineTask` | Freezes all existing violations into `.architecture-guard-baseline.json`. |
+| `archGuardInit` | `ArchitectureGuardInitTask` | Scaffolds a starter `archguard.yml` by auto-detecting root packages. |
+
 > [!TIP]
 > **Rule of Thumb on Concurrency (`threads`):**
-> In almost all projects, **do not configure `<threads>` in `pom.xml`**.
+> In almost all projects, **do not configure `<threads>` in `pom.xml` or `threads.set(...)` in `build.gradle`**.
 > - **Pure In-Memory Computing:** ArchGuard operates strictly in RAM (AST syntax trees, graph traversals, and rule evaluation) with zero I/O wait. Because worker threads execute CPU instructions continuously without blocking, maximum throughput is achieved when **worker threads = number of CPU cores**. Setting threads higher than CPU cores causes CPU cache thrashing and context-switching overhead.
 > - **Automatic Optimal Sizing:** When omitted, ArchGuard automatically queries `Runtime.getRuntime().availableProcessors()` to match all available CPU cores (e.g., 8 threads on an 8-core workstation, 4 threads on a 4-core CI runner).
-> - **Preserves CLI Overrides:** Hardcoding `<threads>` in `pom.xml` locks Maven's configuration and ignores command-line `-Darchguard.threads=...` switches. Leaving it unconfigured allows you to run single-threaded debugging (`-Darchguard.threads=1`) on demand without altering source files.
+> - **Preserves CLI Overrides:** Hardcoding threads in build files locks configuration and ignores command-line `-Darchguard.threads=...` switches. Leaving it unconfigured allows you to run single-threaded debugging (`-Darchguard.threads=1`) on demand without altering source files.
 
 ---
 
 ## 5. Core Commands & Execution
 
 ### 1. Run Standard Quality Gate
-Runs the analysis during the `verify` lifecycle phase (recommended in CI):
+Runs the analysis during the standard build verification phase (recommended in CI):
+
+**Maven:**
 ```bash
 mvn clean verify
 ```
-Or run the plugin goal directly:
+*(Or run the goal directly: `mvn clean compile architecture-guard:check`)*
+
+**Gradle:**
 ```bash
-mvn clean compile architecture-guard:check
+./gradlew check
 ```
+*(Or run the task directly: `./gradlew archguard`)*
 
 ### 2. Generate Baseline Snapshot for Legacy Projects
 Freezes all current project debt into `.architecture-guard-baseline.json`:
+
+**Maven:**
 ```bash
 mvn architecture-guard:baseline
 ```
 
+**Gradle:**
+```bash
+./gradlew archGuardBaseline
+```
+
 ### 3. Run with Ratchet Mode Enabled
 Ensures the baseline shrinks automatically as developers fix old violations:
+
+**Maven:**
 ```bash
 mvn clean verify -Darchguard.ratchet=true
 ```
 
+**Gradle:**
+```bash
+./gradlew check --ratchet
+# or:
+./gradlew check -Darchguard.ratchet=true
+```
+
 ### 4. (Optional) Scaffold Starter Configuration
 Auto-detects base packages and creates a commented `archguard.yml`:
+
+**Maven:**
 ```bash
 mvn architecture-guard:init
 ```
 
-### 5. Multi-Module Project Support
-ArchGuard natively supports Maven multi-module aggregator builds:
-- **Clean POM Packaging Skip:** Parent and aggregator modules (`<packaging>pom</packaging>`) are automatically skipped with an informational log (`Skipping pom packaging module`) without raising false warnings about missing `target/classes`.
-- **Reactor Execution:** Running `mvn clean verify` at the root reactor runs ArchGuard across each artifact-producing submodule cleanly.
+**Gradle:**
+```bash
+./gradlew archGuardInit
+```
+
+### 5. Multi-Module & Multi-Project Support
+ArchGuard natively supports enterprise multi-module and multi-project structures:
+- **Maven Aggregators:** Parent and aggregator modules (`<packaging>pom</packaging>`) are automatically skipped with an informational log (`Skipping pom packaging module`) without raising false warnings about missing `target/classes`. Running `mvn clean verify` at root evaluates each artifact submodule cleanly.
+- **Gradle Multi-Project:** In root `build.gradle.kts`, apply the plugin to Java subprojects:
+  ```kotlin
+  subprojects {
+      apply(plugin = "java")
+      apply(plugin = "io.github.javatechgroup.architecture-guard")
+  }
+  ```
+  Running `./gradlew check` executes `archguard` across all subprojects, generating per-project HTML & SARIF reports.
 
 ### 6. Enforce Strict Warning Failures
 Fails the build if any new `WARNING` (such as `System.out.println` or field `@Autowired`) is added:
+
+**Maven:**
 ```bash
 mvn clean verify -Darchguard.failOnSeverity=WARNING
+```
+
+**Gradle:**
+```bash
+./gradlew check -Darchguard.failOnSeverity=WARNING
 ```
 
 ---
@@ -207,8 +346,14 @@ When introducing architectural tooling into large existing projects with thousan
 ### The Solution: Quality Gate via Differential Baselining
 ArchGuard allows tech leads or CI pipelines to freeze legacy debt:
 
+**Maven:**
 ```bash
 mvn architecture-guard:baseline
+```
+
+**Gradle:**
+```bash
+./gradlew archGuardBaseline
 ```
 
 This generates a version-controlled `.architecture-guard-baseline.json` file containing SHA-256 fingerprints of every current violation.
@@ -1065,23 +1210,29 @@ public class ThirdPartyGeneratedBridge {
 
 ## 9. Configuration File Reference (`archguard.yml`)
 
-ArchGuard embraces a **Zero-Configuration** philosophy: if no configuration file exists, it runs with sensible defaults (all 29 rules active, Spring/JPA stereotype layer detection, and default reporting).
+ArchGuard embraces a **Zero-Configuration** philosophy: if no configuration file exists, it runs with sensible defaults (all 33 rules active, Spring/JPA stereotype layer detection, and default reporting).
 
 When your team needs to **customize** architectural rules, tweak thresholds, map non-standard layer packages, or enforce strict package boundaries, you can add an `archguard.yml` file to your project root.
 
 ---
 
 ### How to Generate `archguard.yml`
-You can create the file manually or scaffold it using the interactive initialization goal:
+You can create the file manually or scaffold it using the interactive initialization goal/task:
 
+**Maven:**
 ```bash
 mvn architecture-guard:init
 ```
 
+**Gradle:**
+```bash
+./gradlew archGuardInit
+```
+
 **What this command does:**
 1. Scans `src/main/java` to auto-detect your project's root package (e.g. `com.mycompany.service`).
-2. Generates a production-ready, commented `archguard.yml` in the project root directory (alongside `pom.xml`).
-3. Automatically takes effect on all subsequent `mvn clean verify` builds.
+2. Generates a production-ready, commented `archguard.yml` in the project root directory (alongside `pom.xml` or `build.gradle`).
+3. Automatically takes effect on all subsequent `mvn clean verify` or `./gradlew check` builds.
 
 ---
 
@@ -1227,7 +1378,7 @@ ArchGuard automatically generates comprehensive reporting artifacts in `target/a
 3. **`report.html` (Offline Interactive Dashboard):**
    - **Self-Contained & Offline:** 100% standalone single-file HTML report with embedded CSS/JS and zero external CDN dependencies.
    - **PR Code Review Banner:** Shows review verdict and 1-click filter buttons (`Focus on PR Delta`, `Show Errors Only`).
-   - **Sidebar Rule Filtering:** Toggle between **`⚠️ Issues Only`** (shows only rules that have active violations to accelerate review) and **`All Rules`** (full 29-rule catalog), with real-time rule search.
+   - **Sidebar Rule Filtering:** Toggle between **`⚠️ Issues Only`** (shows only rules that have active violations to accelerate review) and **`All Rules`** (full 33-rule catalog), with real-time rule search.
    - **Dedicated `🛡️ Suppressed (N)` Scope:** Auditable tab displaying all code-suppressed violations with distinct **`🛡️ SUPPRESSED IN CODE`** badges without polluting the active failure counts.
    - **One-Click IDE Deep Links:** Normalized links (`vscode://file/...` and `idea://open?file=...`) allowing instant 1-click jumps directly to offending lines in VS Code or IntelliJ IDEA on Windows, macOS, and Linux.
    - **Zero-Results Empty State:** Friendly search and filter feedback with an interactive **`↺ Reset All Filters`** button.
@@ -1237,7 +1388,7 @@ ArchGuard automatically generates comprehensive reporting artifacts in `target/a
    - Full structured schema containing execution metadata, rule results, SHA-256 fingerprints, and differential breakdowns.
 
 5. **Console Output:**
-   - Colorized ANSI console summary during Maven builds.
+   - Colorized ANSI console summary during Maven or Gradle builds.
 
 ---
 
