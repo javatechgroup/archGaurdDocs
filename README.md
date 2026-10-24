@@ -1255,7 +1255,7 @@ In Maven multi-module projects, submodules do not need duplicate configuration f
 ```yaml
 # ==============================================================================
 # Architecture Guard Configuration
-# Documentation: https://github.com/javatechgroup/ArchGaurd
+# Documentation: https://github.com/javatechgroup/archGaurdDocs
 # ==============================================================================
 
 # 1. Global Analysis Settings (overrides plugin defaults if set)
@@ -1854,8 +1854,8 @@ ArchGuard loads compiled class metadata and AST structures into memory to build 
 
 If you encounter an issue not resolved above, have a problem with your build, or would like to suggest an improvement:
 
-👉 **[Post an Issue on GitHub](https://github.com/javatechgroup/ArchGaurd/issues)**  
-**Repository:** [https://github.com/javatechgroup/ArchGaurd](https://github.com/javatechgroup/ArchGaurd)
+👉 **[Post an Issue on GitHub](https://github.com/javatechgroup/archGaurdDocs/issues)**  
+**Repository:** [https://github.com/javatechgroup/archGaurdDocs](https://github.com/javatechgroup/archGaurdDocs)
 
 Please include the following details in your issue to help us diagnose and provide a fast solution:
 1. **Java & Build Tool Version:** (`java -version`, `mvn -v`, or `gradle -v`)

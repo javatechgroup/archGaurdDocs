@@ -13,10 +13,10 @@
 > **The Next-Generation Architecture Governance, Spring Boot Intelligence & Zero-Infrastructure Code Quality Gate.**
 
 <p align="center">
-  <a href="https://github.com/javatechgroup/ArchGaurd">⭐ <b>Star on GitHub</b></a> &bull; 
+  <a href="https://github.com/javatechgroup/archGaurdDocs">⭐ <b>Star on GitHub</b></a> &bull; 
   <a href="#11-get-started-in-under-60-seconds">⚡ <b>Quick Start (60s)</b></a> &bull; 
   <a href="#3-head-to-head-comparison-matrix">📊 <b>Comparison vs SonarQube &amp; ArchUnit</b></a> &bull; 
-  <a href="https://github.com/javatechgroup/ArchGaurd/issues">💬 <b>Post Issue / Request Feature</b></a>
+  <a href="https://github.com/javatechgroup/archGaurdDocs/issues">💬 <b>Post Issue / Request Feature</b></a>
 </p>
 
 ---
@@ -652,6 +652,6 @@ ArchGuard is actively evolving to lead the Java 21+ and cloud-native ecosystem.
 <p align="center">
   <b>Built with ❤️ for the Java &amp; Spring Boot Community.</b><br/>
   Zero Infrastructure &bull; Zero Network Overhead &bull; Zero Developer Fatigue<br/><br/>
-  <a href="https://github.com/javatechgroup/ArchGaurd"><b>GitHub Repository</b></a> &bull;
-  <a href="https://github.com/javatechgroup/ArchGaurd/issues"><b>Report an Issue / Suggestion</b></a>
+  <a href="https://github.com/javatechgroup/archGaurdDocs"><b>GitHub Repository</b></a> &bull;
+  <a href="https://github.com/javatechgroup/archGaurdDocs/issues"><b>Report an Issue / Suggestion</b></a>
 </p>
