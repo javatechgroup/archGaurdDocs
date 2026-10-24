@@ -16,8 +16,8 @@
 9. [Configuration File Reference (`archguard.yml`)](#9-configuration-file-reference-archguardyml)
 10. [Reports & Diagnostics](#10-reports-diagnostics--automated-pr-code-review)
 11. [CI/CD Pipeline Integration](#11-cicd-pipeline-integration)
-12. [Troubleshooting & FAQ](#12-troubleshooting--faq)
-13. [Operational Best Practices & Crash Prevention](#13-operational-best-practices--crash-prevention)
+12. [Operational Best Practices & Crash Prevention](#12-operational-best-practices--crash-prevention)
+13. [Troubleshooting & FAQ](#13-troubleshooting--faq)
 
 ---
 
@@ -66,7 +66,7 @@ flowchart TD
 - **Frameworks Supported:** Spring Boot 3.x, Spring Framework 6.x, Standard Java applications
 
 > [!TIP]
-> **Memory Sizing Notice:** For standard microservices, default Maven memory or `-Xmx1g` is plenty. For very large codebases (2,500+ classes), scale up to `-Xmx2g` (or `-Xmx4g` on mega-monoliths) to prevent `OutOfMemoryError`. Always ensure the heap limit does not exceed your CI runner's total container RAM. See [Section 13: Operational Best Practices & Crash Prevention](#13-operational-best-practices--crash-prevention) for the sizing matrix.
+> **Memory Sizing Notice:** For standard microservices, default Maven memory or `-Xmx1g` is plenty. For very large codebases (2,500+ classes), scale up to `-Xmx2g` (or `-Xmx4g` on mega-monoliths) to prevent `OutOfMemoryError`. Always ensure the heap limit does not exceed your CI runner's total container RAM. See [Section 12: Operational Best Practices & Crash Prevention](#12-operational-best-practices--crash-prevention) for the sizing matrix.
 
 ---
 
@@ -1596,20 +1596,7 @@ To maintain a permanent, bookmarkable URL (e.g., `https://my-org.github.io/order
 
 ---
 
-## 12. Troubleshooting & FAQ
-
-#### Q1: Why did the build succeed even though a new violation appeared in the report?
-**Answer:** ArchGuard defaults to `<failOnSeverity>ERROR</failOnSeverity>`. If your new violation is a `WARNING` (e.g. `System.out.println` or `@Autowired`), it will be marked as `NEW` in the report but will not break the build. To fail on warnings, set `<failOnSeverity>WARNING</failOnSeverity>` in your `pom.xml` or pass `-Darchguard.failOnSeverity=WARNING`.
-
-#### Q2: What happens when I rename or move a class?
-**Answer:** ArchGuard’s fingerprinting uses the fully qualified class name. If a class is renamed, any legacy baseline violations in the old class will be marked as `RESOLVED`, and violations in the new class name will be tracked as `NEW`. You can re-run `mvn architecture-guard:baseline` to update the snapshot.
-
-#### Q3: How do I exclude generated classes (MapStruct, Lombok, OpenAPI)?
-**Answer:** In `archguard.yml` / `architecture-guard.json`, add regex patterns to the `"exclusions"` list (e.g., `[".*Generated.*", ".*MapperImpl.*"]`), or use in-code `@SuppressArchitecture("ALL")`.
-
----
-
-## 13. Operational Best Practices & Crash Prevention
+## 12. Operational Best Practices & Crash Prevention
 
 To guarantee zero operational failures, prevent out-of-memory errors, and ensure seamless CI/CD execution across both tiny microservices and massive enterprise monoliths, adhere to the following operational best practices.
 
@@ -1696,6 +1683,35 @@ ArchGuard loads compiled class metadata and AST structures into memory to build 
 #### 5. Fault-Tolerant AST Parsing for Java 21+
 * ArchGuard automatically tolerates modern Java constructs including `record` declarations, `sealed` interfaces, and pattern matching.
 * If individual files contain compilation or syntax errors, ArchGuard safely logs a `[SOURCE_PARSER]` finding for that file while continuing to analyze the rest of the repository without terminating the pipeline.
+
+---
+
+## 13. Troubleshooting & FAQ
+
+#### Q1: Why did the build succeed even though a new violation appeared in the report?
+**Answer:** ArchGuard defaults to `<failOnSeverity>ERROR</failOnSeverity>`. If your new violation is a `WARNING` (e.g. `System.out.println` or `@Autowired`), it will be marked as `NEW` in the report but will not break the build. To fail on warnings, set `<failOnSeverity>WARNING</failOnSeverity>` in your `pom.xml` or pass `-Darchguard.failOnSeverity=WARNING`.
+
+#### Q2: What happens when I rename or move a class?
+**Answer:** ArchGuard’s fingerprinting uses the fully qualified class name. If a class is renamed, any legacy baseline violations in the old class will be marked as `RESOLVED`, and violations in the new class name will be tracked as `NEW`. You can re-run `mvn architecture-guard:baseline` to update the snapshot.
+
+#### Q3: How do I exclude generated classes (MapStruct, Lombok, OpenAPI)?
+**Answer:** In `archguard.yml` / `architecture-guard.json`, add regex patterns to the `"exclusions"` list (e.g., `[".*Generated.*", ".*MapperImpl.*"]`), or use in-code `@SuppressArchitecture("ALL")`.
+
+---
+
+### 💬 Need Help, Found a Bug, or Have a Feature Request?
+
+If you encounter an issue not resolved above, have a problem with your build, or would like to suggest an improvement:
+
+👉 **[Post an Issue on GitHub](https://github.com/javatechgroup/ArchGaurd/issues)**  
+**Repository:** [https://github.com/javatechgroup/ArchGaurd](https://github.com/javatechgroup/ArchGaurd)
+
+Please include the following details in your issue to help us diagnose and provide a fast solution:
+1. **Java & Build Tool Version:** (`java -version`, `mvn -v`, or `gradle -v`)
+2. **Configuration Snippet:** Your `pom.xml` / `build.gradle` plugin declaration or `archguard.yml`
+3. **Execution Logs / Stack Trace:** Full error logs (run with `mvn clean verify -X` if necessary)
+
+*Our development team actively monitors all incoming issues and will work closely with you to provide a fix or guidance.*
 
 ---
 *Maintained by the Architecture Guard Core Team. Built for Java 21 & Spring Boot.*
