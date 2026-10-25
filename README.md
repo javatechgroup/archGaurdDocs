@@ -85,7 +85,7 @@ Add `architecture-guard-maven-plugin` to your project's `<build><plugins>` secti
         <plugin>
             <groupId>io.github.javatechgroup</groupId>
             <artifactId>architecture-guard-maven-plugin</artifactId>
-            <version>1.0.4</version>
+            <version>1.0.5</version>
             <executions>
                 <execution>
                     <goals>
@@ -108,7 +108,7 @@ Add the plugin ID and optional configuration block:
 
 ```kotlin
 plugins {
-    id("io.github.javatechgroup.architecture-guard") version "1.0.4"
+    id("io.github.javatechgroup.architecture-guard") version "1.0.5"
 }
 
 archguard {
@@ -120,7 +120,7 @@ archguard {
 #### Option C: Gradle Groovy DSL (`build.gradle`)
 ```groovy
 plugins {
-    id 'io.github.javatechgroup.architecture-guard' version '1.0.4'
+    id 'io.github.javatechgroup.architecture-guard' version '1.0.5'
 }
 
 archguard {
@@ -1612,7 +1612,7 @@ By default, reports are saved to `target/architecture-guard/`. You can customize
 <plugin>
     <groupId>io.github.javatechgroup</groupId>
     <artifactId>architecture-guard-maven-plugin</artifactId>
-    <version>1.0.4</version>
+    <version>1.0.5</version>
     <configuration>
         <!-- Custom report destination directory -->
         <outputDirectory>${project.build.directory}/custom-architecture-reports</outputDirectory>

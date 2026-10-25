@@ -540,7 +540,7 @@ ArchGuard embraces a **Zero-Configuration** philosophy. It runs directly within 
 <plugin>
     <groupId>io.github.javatechgroup</groupId>
     <artifactId>architecture-guard-maven-plugin</artifactId>
-    <version>1.0.4</version>
+    <version>1.0.5</version>
     <executions>
         <execution>
             <goals>
@@ -557,7 +557,7 @@ ArchGuard embraces a **Zero-Configuration** philosophy. It runs directly within 
 #### Option B: Gradle Kotlin DSL (`build.gradle.kts`)
 ```kotlin
 plugins {
-    id("io.github.javatechgroup.architecture-guard") version "1.0.4"
+    id("io.github.javatechgroup.architecture-guard") version "1.0.5"
 }
 
 archguard {
@@ -568,7 +568,7 @@ archguard {
 #### Option C: Gradle Groovy DSL (`build.gradle`)
 ```groovy
 plugins {
-    id 'io.github.javatechgroup.architecture-guard' version '1.0.4'
+    id 'io.github.javatechgroup.architecture-guard' version '1.0.5'
 }
 
 archguard {
@@ -631,7 +631,7 @@ mvn architecture-guard:init
 
 ArchGuard is actively evolving to lead the Java 21+ and cloud-native ecosystem.
 
-### ✅ Newly Delivered in Version 1.0.4:
+### ✅ Newly Delivered in Version 1.0.5:
 * **`[AG031]` Dynamic SQL/JPQL Injection Detection (OWASP A03 / CWE-89)**: Detects runtime string concatenation in `@Query`, `EntityManager`, and `JdbcTemplate`.
 * **`[AG032]` Broken Cryptographic Algorithm Scanner (OWASP A02 / CWE-327)**: Flags obsolete hashing (`MD5`, `SHA-1`) and weak ciphers (`DES`, `RC4`, `ECB`).
 * **`[AG033]` Insecure CORS Wildcard Configuration (OWASP A05 / CWE-942)**: Flags wildcard origins (`*`) paired with `allowCredentials=true`.
