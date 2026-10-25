@@ -1364,7 +1364,11 @@ packageBoundaries:
 
 ## 10. Reports, Diagnostics & Automated PR Code Review
 
-ArchGuard automatically generates comprehensive reporting artifacts in `target/architecture-guard/` during `mvn verify` / `mvn architecture-guard:check`:
+> [!TIP]
+> **Complete Visual Glossary & Badge Guide:**  
+> For an in-depth reference explaining every badge, severity level (`ERROR`, `WARNING`), baseline state (`NEW`, `BASELINED`, `RESOLVED`), and risk indicator (`💥 High Blast Radius`), see the [Report Indicators, Badges & Glossary Guide](file:///e:/Arch-Gaurd/docs/guides/report-glossary.md).
+
+ArchGuard automatically generates comprehensive reporting artifacts in `target/architecture-guard/` (Maven) or `build/reports/architecture-guard/` (Gradle):
 
 1. **`report.sarif` (Standard OASIS SARIF 2.1.0):**
    - Industry-standard Static Analysis Results Interchange Format.
