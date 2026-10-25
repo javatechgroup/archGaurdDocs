@@ -62,6 +62,7 @@ flowchart TD
 ## 2. Prerequisites & System Requirements
 
 - **JDK:** Java 21 or higher
+- **Application Language:** Java (`.java` source files). *(Note: Kotlin application source files `.kt` are not supported; "Kotlin DSL" refers strictly to Gradle build scripts `build.gradle.kts`)*
 - **Build Tools:** Apache Maven 3.8.0+ or Gradle 8.0+
 - **Frameworks Supported:** Spring Boot 3.x, Spring Framework 6.x, Standard Java applications
 
@@ -1847,6 +1848,9 @@ ArchGuard loads compiled class metadata and AST structures into memory to build 
 
 #### Q3: How do I exclude generated classes (MapStruct, Lombok, OpenAPI)?
 **Answer:** In `archguard.yml` / `architecture-guard.json`, add regex patterns to the `"exclusions"` list (e.g., `[".*Generated.*", ".*MapperImpl.*"]`), or use in-code `@SuppressArchitecture("ALL")`.
+
+#### Q4: Does ArchGuard support Kotlin application code (`.kt`)?
+**Answer:** No. ArchGuard is engineered specifically for **Java** application source code (`.java`) and bytecode (`.class`). While the Gradle plugin supports Gradle build configuration scripts written in **Kotlin DSL (`build.gradle.kts`)**, the application codebase being scanned must be Java. Scanning Kotlin language syntax (`.kt` files) is not supported.
 
 ---
 

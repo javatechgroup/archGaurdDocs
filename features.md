@@ -533,7 +533,7 @@ worker queue scheduling, and centralized server-side database persistence.
 
 ArchGuard embraces a **Zero-Configuration** philosophy. It runs directly within your build without requiring external daemons, databases, or cloud tokens.
 
-### Step 1: Add ArchGuard to Your Build
+### Step 1: Add ArchGuard to Your Java Build (Maven or Gradle)
 
 #### Option A: Apache Maven (`pom.xml`)
 ```xml
