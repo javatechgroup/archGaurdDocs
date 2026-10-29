@@ -150,7 +150,7 @@ graph LR
 | :--- | :---: | :---: | :---: | :---: | :---: |
 | **Server / Cloud Infrastructure** | **None (100% Embedded)** | Heavy Server + DB | None (JUnit tests) | None (Plugin) | None (Plugin) |
 | **Execution Speed** | **⚡ ~1.5–3s (Sub-5s on large repos)** | Minutes (Server queue + DB) | Test suite overhead | Fast (~5–15s) | Fast (~5–10s) |
-| **Cost & Licensing** | **100% Free & Open Source** | Expensive Enterprise Tier | Free & Open Source | Free & Open Source | Free & Open Source |
+| **Cost & Licensing** | **100% Free** | Expensive Enterprise Tier | Free  | Free | Free |
 | **Spring Proxy Self-Invocation (`AG021`)** | ✅ **Built-in Native** | ❌ None | ⚠️ Custom test code | ❌ None | ❌ None |
 | **Spring Singleton Race Conditions (`AG022`)**| ✅ **Built-in Native** | ⚠️ Static only | ⚠️ Custom test code | ⚠️ Static only | ❌ None |
 | **Full Spring Context & `@Bean` Awareness**| ✅ **Built-in Native (Stereotypes + @Bean + Scopes)** | ❌ None | ⚠️ Manual test code | ❌ None | ❌ None |
